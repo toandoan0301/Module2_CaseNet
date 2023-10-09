@@ -17,9 +17,11 @@ public class Validate {
     static final String PASSWORD_REGEX = "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])[a-zA-Z0-9]{6,}$";
     static final String SERVICE_ID = "^[0-9]{3,}$";
     static final String SERVICE_NAME = "^.{3,}$";
-    static final Scanner INPUT = new Scanner(System.in);
-
-    public static int inputChoice() {
+    private Scanner INPUT;
+    public Validate(Scanner scanner){
+        this.INPUT=scanner;
+    }
+    public int inputChoice() {
         int number;
         do {
             System.out.print("Nhập lựa chọn: ");
@@ -32,7 +34,7 @@ public class Validate {
         } while (true);
     }
 
-    public static String inputUsername() {
+    public String inputUsername() {
         String username;
         do {
             System.out.print("Nhập Tên Tài Khoản: ");
@@ -45,7 +47,7 @@ public class Validate {
         } while (true);
     }
 
-    public static String inputPassword() {
+    public String inputPassword() {
         String password;
         do {
             System.out.print("Nhập Mật Khẩu(6 ký tự trở lên): ");
@@ -58,7 +60,7 @@ public class Validate {
         } while (true);
     }
 
-    public static int inputMoney() {
+    public int inputMoney() {
         int money;
         do {
             System.out.print("Nhập số tiền muốn nạp: ");
@@ -73,14 +75,14 @@ public class Validate {
         } while (true);
     }
 
-    public static void waiting(int choice) {
+    public void waiting(int choice) {
         if (choice != 0) {
             System.out.print(ANSI_BLUE + "Nhấn Enter Để Tiếp Tục..." + ANSI_RESET);
             INPUT.nextLine();
         }
     }
 
-    public static String inputServiceId() {
+    public String inputServiceId() {
         String id;
         do {
             System.out.print("Nhập Mã Dịch Vụ(vd: 001): ");
@@ -92,7 +94,7 @@ public class Validate {
         } while (true);
     }
 
-    public static String inputServiceName() {
+    public String inputServiceName() {
         String name;
         do {
             System.out.print("Nhập Tên Dịch Vụ: ");
@@ -104,7 +106,7 @@ public class Validate {
         } while (true);
     }
 
-    public static int inputNumber(String str) {
+    public int inputNumber(String str) {
         int number;
         do {
             try {
@@ -117,7 +119,7 @@ public class Validate {
         } while (true);
     }
 
-    public static int inputPrice() {
+    public int inputPrice() {
         int price;
         do {
             System.out.print("Nhập giá dịch vụ: ");
@@ -130,7 +132,7 @@ public class Validate {
         } while (true);
     }
 
-    public static String inputString(String str) {
+    public String inputString(String str) {
         String result;
         do {
             System.out.print(str);

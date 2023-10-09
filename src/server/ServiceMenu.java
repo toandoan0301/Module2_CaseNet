@@ -4,12 +4,15 @@ import manager.ServiceManager;
 import model.Service;
 import validate.Validate;
 
+import java.util.Scanner;
+
 public class ServiceMenu{
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_BLUE = "\u001B[34m";
     public static final String ANSI_PURPLE = "\u001B[35m";
+    static Validate validate= new Validate(new Scanner(System.in));
 
     public static void showMenu(ServiceManager serviceManager) {
         int choice;
@@ -21,7 +24,7 @@ public class ServiceMenu{
                     "\n4. Danh Sách Dịch Vụ" +
                     "\n5. ???" +
                     "\n0. Quay Lại");
-            choice = Validate.inputChoice();
+            choice = validate.inputChoice();
             switch (choice) {
                 case 1:
                     addService(serviceManager);
@@ -43,7 +46,7 @@ public class ServiceMenu{
                 default:
                     System.out.println(ANSI_RED + "----->Lựa chọn không tồn tại!<-----" + ANSI_RESET);
             }
-            Validate.waiting(choice);
+            validate.waiting(choice);
         } while (choice != 0);
     }
 
@@ -51,26 +54,26 @@ public class ServiceMenu{
         System.out.println(ANSI_BLUE + "=====>Thêm Dịch Vụ Mới<====="+ANSI_RESET);
         String id;
         do {
-            id = Validate.inputServiceId();
+            id = validate.inputServiceId();
             if (serviceManager.findIndexById(id) == -1) {
                 break;
             }
             System.out.println(ANSI_RED + "Mã dịch vụ đã tồn tại" + ANSI_RESET);
         } while (true);
-        String name = Validate.inputServiceName();
-        int price = Validate.inputPrice();
-        int quantity = Validate.inputNumber("Nhập số lượng: ");
+        String name = validate.inputServiceName();
+        int price = validate.inputPrice();
+        int quantity = validate.inputNumber("Nhập số lượng: ");
         serviceManager.add(new Service(id, name, price, quantity));
         System.out.println(ANSI_GREEN + "---->Thêm mới thành công!<----" + ANSI_RESET);
     }
 
     public static void editService(ServiceManager serviceManager) {
         System.out.println(ANSI_BLUE + "=====>Sửa Dịch VỤ<=====");
-        String id = Validate.inputServiceId();
+        String id = validate.inputServiceId();
         if (serviceManager.findIndexById(id) != -1) {
-            String name = Validate.inputServiceName();
-            int price = Validate.inputPrice();
-            int quantity = Validate.inputNumber("Nhập số lượng: ");
+            String name = validate.inputServiceName();
+            int price = validate.inputPrice();
+            int quantity = validate.inputNumber("Nhập số lượng: ");
             serviceManager.edit(new Service(id, name, price, quantity));
             System.out.println(ANSI_GREEN + "---->Sửa thành công!<----" + ANSI_RESET);
         } else {
@@ -80,11 +83,11 @@ public class ServiceMenu{
 
     public static void deleteService(ServiceManager serviceManager) {
         System.out.println(ANSI_BLUE + "=====>Xoá Dịch Vụ<=====");
-        String id = Validate.inputServiceId();
+        String id = validate.inputServiceId();
         if (serviceManager.findIndexById(id) != -1) {
             do {
                 System.out.println(ANSI_RED + "Nhập 1 để xác nhận xoá | 0 để bỏ qua!" + ANSI_RESET);
-                int choice = Validate.inputChoice();
+                int choice = validate.inputChoice();
                 if (choice == 1) {
                     serviceManager.delete(id);
                     System.out.println(ANSI_GREEN + "----->Đã Xoá Dịch Vụ!<-----" + ANSI_RESET);

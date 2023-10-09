@@ -3,31 +3,21 @@ import client.ClientMenu;
 import java.io.*;
 import java.net.Socket;
 
-public class MainClient{
-    static ObjectOutputStream objectOutputStream;
-    static ObjectInputStream objectInputStream;
+public class MainClient extends Thread {
     static Socket socket;
 
     public static void main(String[] args) {
-      //  MainClient client = new MainClient();
-//        client.start();
+        MainClient client = new MainClient();
+        client.start();
+    }
+
+    public void run() {
         try {
             socket = new Socket("localhost", 11998);
             ClientMenu clientMenu = new ClientMenu(socket);
             clientMenu.start();
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    public void run() {
-        try {
-            socket = new Socket("localhost", 11998);
-            Thread thread= new Thread(new ClientMenu(socket));
-            thread.start();
-//            ClientMenu clientMenu = new ClientMenu(socket);
-//            clientMenu.start();
-        } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error: " + e.getMessage());
         }
     }
 }

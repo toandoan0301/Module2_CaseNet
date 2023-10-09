@@ -10,7 +10,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.*;
 
-public class ClientMenu extends Thread{
+public class ClientMenu extends Thread {
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_GREEN = "\u001B[32m";
@@ -18,9 +18,13 @@ public class ClientMenu extends Thread{
     public static final String ANSI_BLUE = "\u001B[34m";
     public static final String ANSI_CYAN = "\u001B[36m";
     private String userLogin = null;
-    private Socket socket;
+    private final Socket socket;
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
+    private ObjectInputStream chatInputStream;
+    private ObjectOutputStream chatOutputStream;
+    private Validate validate;
+
     public ClientMenu(Socket socket) {
         this.socket = socket;
     }
@@ -30,27 +34,26 @@ public class ClientMenu extends Thread{
         try {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            Thread chatThread = chatThread();
+            chatThread.start();
             connect();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
-    public void connect () {
+    public void connect() {
         userLogin = login();
         deductFromAccount();
-        menuPlayer();
-    }
-    public void relogin() {
-        userLogin = login();
         menuPlayer();
     }
 
     public String login() {
         do {
+            validate = new Validate(new Scanner(System.in));
             System.out.println(ANSI_BLUE + "======>Đăng Nhập Vào Máy<======" + ANSI_RESET);
-            String username = Validate.inputString(String.format("%-18s%s", "Nhập tên Tài Khoản", ": "));
-            String password = Validate.inputString(String.format("%-18s%s", "Nhập mật khẩu", ": "));
+            String username = validate.inputString(String.format("%-18s%s", "Nhập tên Tài Khoản", ": "));
+            String password = validate.inputString(String.format("%-18s%s", "Nhập mật khẩu", ": "));
             try {
                 objectOutputStream.writeObject("Check_Login");
                 resetOutput();
@@ -63,7 +66,7 @@ public class ClientMenu extends Thread{
                 }
                 System.out.println(ANSI_RED + "Sai Tài Khoản Hoặc Mật Khẩu!" + ANSI_RESET);
             } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             }
 
         } while (true);
@@ -75,31 +78,38 @@ public class ClientMenu extends Thread{
     }
 
     public void menuPlayer() {
-        int choice;
-        do {
-            showMenu();
-            choice = Validate.inputChoice();
-            switch (choice) {
-                case 1:
-                    showInfor();
-                    break;
-                case 2:
-                    changePassword();
-                    break;
-                case 3:
-                    menuService();
-                    break;
-                case 4:
-                    System.out.println("Chat");
-                    break;
-                case 0:
-                    connect();
-                    break;
-                default:
-                    System.out.println(ANSI_RED + "Sai lựa chọn" + ANSI_RESET);
-            }
-            Validate.waiting(choice);
-        } while (choice != 0);
+        if (userLogin == null) {
+            connect();
+        } else {
+            int choice;
+            do {
+                showMenu();
+                choice = validate.inputChoice();
+                switch (choice) {
+                    case 1:
+                        showInfor();
+                        break;
+                    case 2:
+                        changePassword();
+                        break;
+                    case 3:
+                        menuService();
+                        break;
+                    case 4:
+                        chat();
+
+                        break;
+                    case 0:
+                        System.out.println("Đã Đăng Xuất");
+                        userLogin = null;
+                        connect();
+                        break;
+                    default:
+                        System.out.println(ANSI_RED + "Sai lựa chọn" + ANSI_RESET);
+                }
+                validate.waiting(choice);
+            } while (choice != 0);
+        }
     }
 
     public void showInfor() {
@@ -120,13 +130,13 @@ public class ClientMenu extends Thread{
             objectOutputStream.writeObject("Change_Password");
             resetOutput();
             System.out.println(ANSI_GREEN + "====>Thay Đổi Mật Khẩu<=====" + ANSI_RESET);
-            String oldPassword = Validate.inputString("Nhập mật khẩu hiện tại: ");
+            String oldPassword = validate.inputString("Nhập mật khẩu hiện tại: ");
             objectOutputStream.writeObject(new UserAccount(userLogin, oldPassword));
             resetOutput();
             String check = (String) objectInputStream.readObject();
             if (check != null) {
                 System.out.println("Nhập mật khẩu mới");
-                String newPassword = Validate.inputPassword();
+                String newPassword = validate.inputPassword();
                 objectOutputStream.writeObject(newPassword);
                 resetOutput();
                 System.out.println(ANSI_GREEN + "Đã đổi mật khẩu");
@@ -146,7 +156,7 @@ public class ClientMenu extends Thread{
             System.out.println("\t1. Danh sách dịch vụ" +
                     "\n\t2. Sử dụng dịch vụ" +
                     "\n\t0. Quay Lại.");
-            choice = Validate.inputChoice();
+            choice = validate.inputChoice();
             switch (choice) {
                 case 1:
                     showAllServices();
@@ -158,7 +168,7 @@ public class ClientMenu extends Thread{
                 default:
                     System.out.println(ANSI_RED + "Nhập sai lựa chọn" + ANSI_RESET);
             }
-            Validate.waiting(choice);
+            validate.waiting(choice);
         } while (choice != 0);
     }
 
@@ -181,12 +191,12 @@ public class ClientMenu extends Thread{
         try {
             objectOutputStream.writeObject("Use_Service");
             resetOutput();
-            String id = Validate.inputString("Nhập mã dịch vụ muốn sử dụng: ");
+            String id = validate.inputString("Nhập mã dịch vụ muốn sử dụng: ");
             objectOutputStream.writeObject(id);
             resetOutput();
             Service service = (Service) objectInputStream.readObject();
             if (service != null) {
-                int quantity = Validate.inputNumber("Nhập số lượng: ");
+                int quantity = validate.inputNumber("Nhập số lượng: ");
                 if (service.getQuantity() >= quantity) {
                     objectOutputStream.writeObject(userLogin + "," + quantity);
                     resetOutput();
@@ -228,6 +238,7 @@ public class ClientMenu extends Thread{
             @Override
             public void run() {
                 try {
+                    if (userLogin != null) {
                         objectOutputStream.writeObject("Deduct_Money");
                         resetOutput();
                         objectOutputStream.writeObject(userLogin);
@@ -237,16 +248,52 @@ public class ClientMenu extends Thread{
                             System.out.println(ANSI_RED + "\n-5000 VND" + ANSI_RESET);
                         } else {
                             System.out.println(ANSI_YELLOW + "Đã hết tiền vui lòng nạp thêm !" + ANSI_RESET);
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                            userLogin = null;
                             connect();
                         }
+                    }
                 } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
+                    System.out.println(e.getMessage());
                 }
-
             }
         };
         Calendar data = Calendar.getInstance();
         timer.schedule(task, data.getTime(), 20000);
     }
+    private Thread chatThread() {
 
+        return new Thread(() -> {
+            try {
+                Socket chatSocket = new Socket("localhost",21998);
+                chatInputStream = new ObjectInputStream(chatSocket.getInputStream());
+                chatOutputStream = new ObjectOutputStream(chatSocket.getOutputStream());
+                while (true) {
+                    String request = (String) chatInputStream.readObject();
+                    if (request.equals("Server_Chat")) {
+                        String msg = (String) chatInputStream.readObject();
+                        System.out.println(ANSI_YELLOW+"Chủ quán: " + msg+ANSI_RESET);
+                    }
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                System.out.println(e.getMessage());
+            }
+        });
+    }
+    public void chat() {
+        try {
+            chatOutputStream.writeObject("Cline_Chat");
+            chatOutputStream.reset();
+            String messageInput = validate.inputString("Nhập tin nhắn: ");
+            String[] message = {userLogin, messageInput};
+            chatOutputStream.writeObject(message);
+            chatOutputStream.reset();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
